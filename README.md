@@ -95,6 +95,10 @@ Ordinary unit tests mock Kraken2 execution and do not require a real Kraken2 dat
 pytest
 ```
 
+## Stage 2 planning
+
+A detailed Stage 2 implementation playbook is available in [`docs/stage2_planning.md`](docs/stage2_planning.md).
+
 ## Limitations and next steps
 
 - No final human/nonhuman scoring is implemented.

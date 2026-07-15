@@ -6,6 +6,7 @@ import json
 import sys
 from pathlib import Path
 
+from .fastq import FastqValidationError, validate_paired_fastq
 from .kraken import planned_outputs, run_kraken2
 
 
@@ -23,6 +24,12 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument("--overwrite", action="store_true")
     run.add_argument("--dry-run", action="store_true")
     run.add_argument("--check-output-lines", type=int, default=1000)
+    validate = sub.add_parser("validate-fastq", help="Validate paired FASTQ integrity without running Kraken2")
+    validate.add_argument("--r1", required=True, type=Path)
+    validate.add_argument("--r2", required=True, type=Path)
+    validate.add_argument("--sample-id", required=True)
+    validate.add_argument("--outdir", required=True, type=Path)
+    validate.add_argument("--overwrite", action="store_true")
     return parser
 
 
@@ -47,6 +54,13 @@ def main(argv: list[str] | None = None) -> int:
                 print(path)
         else:
             print(json.dumps(metadata["output_files"], indent=2, sort_keys=True))
+    if args.command == "validate-fastq":
+        try:
+            result = validate_paired_fastq(r1=args.r1, r2=args.r2, sample_id=args.sample_id, outdir=args.outdir, overwrite=args.overwrite)
+        except Exception as exc:
+            print(f"ERROR: {exc}", file=sys.stderr)
+            return 1
+        print(json.dumps({"validation_status": result["validation_status"], "output_file": result["output_file"], "pairs": result["pairs"]}, indent=2, sort_keys=True))
     return 0
 
 

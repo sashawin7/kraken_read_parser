@@ -105,3 +105,31 @@ A detailed Stage 2 implementation playbook is available in [`docs/stage2_plannin
 - No FASTQ binning output is implemented.
 - No taxonomy-specific human/nonhuman logic is hard-coded.
 - Optional integration tests against a real Kraken2 database can be added later behind an explicit database path.
+
+## Stage 2 FASTQ validation
+
+Before Kraken2 classification, paired FASTQs can be validated without a Kraken2 binary or database:
+
+```bash
+kraken-read-parser validate-fastq \
+  --r1 normal_R1.fastq.gz \
+  --r2 normal_R2.fastq.gz \
+  --sample-id normal_example \
+  --outdir results/normal_example
+```
+
+The command streams gzip-compressed or uncompressed FASTQ inputs in bounded memory and writes:
+
+- `OUTDIR/SAMPLE_ID.fastq_validation.json`
+
+Validation checks include missing or unreadable inputs, empty files, incomplete four-line records, invalid `@` headers, invalid `+` separator lines, sequence/quality length mismatches, corrupt gzip streams, unequal mate counts, and R1/R2 identifier mismatches at the same ordinal after conservative mate-name normalization. Failed validation exits nonzero and still writes JSON containing the actionable error.
+
+Read-name normalization is deliberately conservative. It removes only a terminal `/1` or `/2` from the first identifier token, or ignores an Illumina-style whitespace mate field beginning with `1:` or `2:`. Matching names with no explicit mate suffix are accepted. Other unusual identifiers are preserved for comparison so distinct templates are not collapsed aggressively. Whole-file duplicate-read-ID detection is not performed in this PR because exact duplicate detection would require unbounded memory or a separate external indexing strategy at WGS scale.
+
+Validation is separate from `run-kraken`: the existing Kraken2 command does not perform a surprise full FASTQ scan by default. Validation also does not interpret taxonomy, classify reads as human/non-human, apply thresholds, or write filtered FASTQ bins.
+
+Schema details for validation JSON, run metadata, and reserved future artifact families are documented in [`docs/schemas.md`](docs/schemas.md).
+
+## Data and generated-output safety
+
+Do not commit real human miniCRAMs or FASTQs, BAM/CRAM files, Kraken2 databases, large Kraken2 outputs, Apptainer SIF images, Nextflow work directories, or institution-specific runtime paths. The committed FASTQ files are intentionally small development examples only.

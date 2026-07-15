@@ -42,6 +42,7 @@ Optional flags include:
 - `--kraken2-bin`: executable path/name, default `kraken2`;
 - `--overwrite`: permit replacement of existing output artifacts;
 - `--dry-run`: print the command and planned files without running Kraken2;
+- `--memory-mapping`: add Kraken2 `--memory-mapping` so Kraken2 memory-maps the database instead of loading the entire database into RAM; this can reduce RAM requirements for large databases but may increase storage I/O;
 - `--check-output-lines`: number of Kraken2 rows to sanity-check after execution, default `1000`.
 
 The Kraken2 command constructed is equivalent to:
@@ -52,6 +53,8 @@ kraken2 --paired --db DB --threads THREADS \
   --report OUTDIR/SAMPLE_ID.kraken2.report.tsv \
   R1 R2
 ```
+
+By default, Stage 1 does not enable memory mapping; omit `--memory-mapping` to keep the historical Kraken2 command shape shown above.
 
 Stage 1 intentionally does not pass `--classified-out`, `--unclassified-out`, `--use-names`, `--quick`, or `--confidence`.
 
@@ -64,7 +67,7 @@ Each non-dry run writes:
 - `OUTDIR/SAMPLE_ID.kraken2.stderr.log`
 - `OUTDIR/SAMPLE_ID.run_metadata.json`
 
-Metadata records the sample id, absolute input paths, database path, output directory, thread count, Kraken2 executable, full argv list, start/end times, elapsed seconds, exit code, output file paths, package version, Python version, and platform string.
+Metadata records the sample id, absolute input paths, database path, output directory, thread count, memory-mapping setting, Kraken2 executable, full argv list, start/end times, elapsed seconds, exit code, output file paths, package version, Python version, and platform string.
 
 ## Parser behavior
 

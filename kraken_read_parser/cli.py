@@ -23,6 +23,11 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument("--kraken2-bin", default="kraken2")
     run.add_argument("--overwrite", action="store_true")
     run.add_argument("--dry-run", action="store_true")
+    run.add_argument(
+        "--memory-mapping",
+        action="store_true",
+        help="Use Kraken2 --memory-mapping to map the database instead of loading it fully into RAM",
+    )
     run.add_argument("--check-output-lines", type=int, default=1000)
     validate = sub.add_parser("validate-fastq", help="Validate paired FASTQ integrity without running Kraken2")
     validate.add_argument("--r1", required=True, type=Path)
@@ -40,7 +45,9 @@ def main(argv: list[str] | None = None) -> int:
             metadata = run_kraken2(
                 r1=args.r1, r2=args.r2, db=args.db, sample_id=args.sample_id, outdir=args.outdir,
                 threads=args.threads, kraken2_bin=args.kraken2_bin, overwrite=args.overwrite,
-                dry_run=args.dry_run, check_output_lines=args.check_output_lines,
+                dry_run=args.dry_run,
+                check_output_lines=args.check_output_lines,
+                memory_mapping=args.memory_mapping,
             )
         except Exception as exc:
             print(f"ERROR: {exc}", file=sys.stderr)

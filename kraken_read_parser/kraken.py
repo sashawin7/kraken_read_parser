@@ -30,8 +30,17 @@ def planned_outputs(outdir: Path, sample_id: str) -> KrakenOutputs:
     )
 
 
-def build_kraken2_command(*, kraken2_bin: str, db: Path, threads: int, outputs: KrakenOutputs, r1: Path, r2: Path) -> list[str]:
-    return [
+def build_kraken2_command(
+    *,
+    kraken2_bin: str,
+    db: Path,
+    threads: int,
+    outputs: KrakenOutputs,
+    r1: Path,
+    r2: Path,
+    memory_mapping: bool = False,
+) -> list[str]:
+    command = [
         kraken2_bin,
         "--paired",
         "--db",
@@ -42,9 +51,11 @@ def build_kraken2_command(*, kraken2_bin: str, db: Path, threads: int, outputs: 
         str(outputs.output_tsv),
         "--report",
         str(outputs.report_tsv),
-        str(r1),
-        str(r2),
     ]
+    if memory_mapping:
+        command.append("--memory-mapping")
+    command.extend([str(r1), str(r2)])
+    return command
 
 
 def sanity_check_output(path: Path, *, rows: int = 1000, require_paired: bool = True) -> tuple[int, int]:
@@ -66,7 +77,20 @@ def sanity_check_output(path: Path, *, rows: int = 1000, require_paired: bool = 
     return checked, paired
 
 
-def run_kraken2(*, r1: Path, r2: Path, db: Path, sample_id: str, outdir: Path, threads: int, kraken2_bin: str = "kraken2", overwrite: bool = False, check_output_lines: int = 1000, dry_run: bool = False) -> dict:
+def run_kraken2(
+    *,
+    r1: Path,
+    r2: Path,
+    db: Path,
+    sample_id: str,
+    outdir: Path,
+    threads: int,
+    kraken2_bin: str = "kraken2",
+    overwrite: bool = False,
+    check_output_lines: int = 1000,
+    dry_run: bool = False,
+    memory_mapping: bool = False,
+) -> dict:
     r1 = r1.resolve(); r2 = r2.resolve(); db = db.resolve(); outdir = outdir.resolve()
     require_existing_path(r1, "R1 FASTQ")
     require_existing_path(r2, "R2 FASTQ")
@@ -75,13 +99,21 @@ def run_kraken2(*, r1: Path, r2: Path, db: Path, sample_id: str, outdir: Path, t
     outputs = planned_outputs(outdir, sample_id)
     protect_outputs(outputs.__dict__.values(), overwrite=overwrite)
     require_executable(kraken2_bin)
-    command = build_kraken2_command(kraken2_bin=kraken2_bin, db=db, threads=threads, outputs=outputs, r1=r1, r2=r2)
+    command = build_kraken2_command(
+        kraken2_bin=kraken2_bin,
+        db=db,
+        threads=threads,
+        outputs=outputs,
+        r1=r1,
+        r2=r2,
+        memory_mapping=memory_mapping,
+    )
     start = datetime.now(timezone.utc)
     metadata = base_metadata() | run_metadata_schema() | {
         "sample_id": sample_id,
         "r1": str(r1), "r2": str(r2), "kraken2_db": str(db), "outdir": str(outdir),
         "inputs": {"r1": file_identity(r1), "r2": file_identity(r2), "kraken2_db": file_identity(db)},
-        "threads": threads, "kraken2_executable": kraken2_bin, "command": command,
+        "threads": threads, "memory_mapping": memory_mapping, "kraken2_executable": kraken2_bin, "command": command,
         "start_time": start.isoformat(), "output_files": {k: str(v) for k, v in outputs.__dict__.items()},
     }
     if dry_run:

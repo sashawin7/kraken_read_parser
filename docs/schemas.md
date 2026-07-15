@@ -30,7 +30,7 @@ Full content hashes are intentionally not computed by default because WGS FASTQs
 
 ## Run metadata JSON v1
 
-`run-kraken` keeps the Stage 1 filename and fields in `OUTDIR/SAMPLE.run_metadata.json`, and adds schema identity plus reusable input identity for R1, R2, and the Kraken2 database path. The command still records package version, Python/platform information, sample id, inputs, database, output directory, thread count, executable, argv, timestamps, output paths, dry-run state, elapsed seconds, and exit status.
+`run-kraken` keeps the Stage 1 filename and fields in `OUTDIR/SAMPLE.run_metadata.json`, and adds schema identity plus reusable input identity for R1, R2, and the Kraken2 database path. The command still records package version, Python/platform information, sample id, inputs, database, output directory, thread count, memory-mapping setting, executable, argv, timestamps, output paths, dry-run state, elapsed seconds, and exit status.
 
 ## Reserved future schemas
 

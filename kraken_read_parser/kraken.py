@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Sequence
 
-from .metadata import base_metadata, write_metadata
+from .metadata import base_metadata, file_identity, run_metadata_schema, write_metadata
 from .parser import parse_kraken2_file
 from .validation import protect_outputs, require_executable, require_existing_path
 
@@ -77,9 +77,10 @@ def run_kraken2(*, r1: Path, r2: Path, db: Path, sample_id: str, outdir: Path, t
     require_executable(kraken2_bin)
     command = build_kraken2_command(kraken2_bin=kraken2_bin, db=db, threads=threads, outputs=outputs, r1=r1, r2=r2)
     start = datetime.now(timezone.utc)
-    metadata = base_metadata() | {
+    metadata = base_metadata() | run_metadata_schema() | {
         "sample_id": sample_id,
         "r1": str(r1), "r2": str(r2), "kraken2_db": str(db), "outdir": str(outdir),
+        "inputs": {"r1": file_identity(r1), "r2": file_identity(r2), "kraken2_db": file_identity(db)},
         "threads": threads, "kraken2_executable": kraken2_bin, "command": command,
         "start_time": start.isoformat(), "output_files": {k: str(v) for k, v in outputs.__dict__.items()},
     }

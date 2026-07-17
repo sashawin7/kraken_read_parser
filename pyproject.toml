@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "kraken-read-parser"
-version = "0.1.0"
+version = "0.2.0"
 description = "Stage 1 Kraken2 runner and paired-output parser for human genomic paired-end FASTQ products"
 readme = "README.md"
 requires-python = ">=3.9"

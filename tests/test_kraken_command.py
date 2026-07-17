@@ -10,6 +10,7 @@ from kraken_read_parser.kraken import build_kraken2_command, planned_outputs, ru
 def touch_inputs(tmp_path):
     r1 = tmp_path / "r1.fq"; r2 = tmp_path / "r2.fq"; db = tmp_path / "db"; out = tmp_path / "out"
     r1.write_text("@r/1\nA\n+\n!\n"); r2.write_text("@r/2\nA\n+\n!\n"); db.mkdir(); out.mkdir()
+    [(db / n).write_text("x") for n in ("hash.k2d", "opts.k2d", "taxo.k2d")]
     exe = tmp_path / "kraken2"; exe.write_text("#!/bin/sh\nexit 0\n"); exe.chmod(0o755)
     return r1, r2, db, out, exe
 
@@ -52,7 +53,7 @@ def test_successful_mocked_run_writes_metadata(monkeypatch, tmp_path):
     r1, r2, db, out, exe = touch_inputs(tmp_path)
     def fake_run(cmd, stdout, stderr, text):
         (out / "sample.kraken2.tsv").write_text("C\tread1\t9606\t10|10\t9606:1 |:| 9606:1\n")
-        (out / "sample.kraken2.report.tsv").write_text("report\n")
+        (out / "sample.kraken2.report.tsv").write_text("100.00\t1\t0\tU\t0\tunclassified\n100.00\t1\t1\tR\t1\troot\n")
         stderr.write("ok\n")
         return subprocess.CompletedProcess(cmd, 0)
     monkeypatch.setattr(subprocess, "run", fake_run)
@@ -69,7 +70,7 @@ def test_memory_mapping_metadata_and_command_provenance(monkeypatch, tmp_path):
 
     def fake_run(cmd, stdout, stderr, text):
         (out / "sample.kraken2.tsv").write_text("C\tread1\t9606\t10|10\t9606:1 |:| 9606:1\n")
-        (out / "sample.kraken2.report.tsv").write_text("report\n")
+        (out / "sample.kraken2.report.tsv").write_text("100.00\t1\t0\tU\t0\tunclassified\n100.00\t1\t1\tR\t1\troot\n")
         stderr.write("ok\n")
         return subprocess.CompletedProcess(cmd, 0)
 

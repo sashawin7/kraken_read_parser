@@ -98,6 +98,10 @@ Ordinary unit tests mock Kraken2 execution and do not require a real Kraken2 dat
 pytest
 ```
 
+## Operational guide
+
+For repository structure, current CLI behavior, artifact interpretation, and safe HPC command-generation templates, see [`docs/repo_structure_and_program_use.md`](docs/repo_structure_and_program_use.md).
+
 ## Stage 2 planning
 
 A detailed Stage 2 implementation playbook is available in [`docs/stage2_planning.md`](docs/stage2_planning.md).

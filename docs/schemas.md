@@ -35,3 +35,14 @@ Full content hashes are intentionally not computed by default because WGS FASTQs
 ## Reserved future schemas
 
 The read evidence, pair evidence, and binning manifest schema names are declared now so future PRs can refer to stable artifact families. This PR does not implement taxonomy loading, biological labels, policy thresholds, evidence tables, or FASTQ binning.
+
+## Database provenance and Kraken summary (v1)
+
+`kraken_read_parser.database_provenance` records core-file identities, optional
+taxonomy availability/warnings, executable version attempts, inspection argv,
+timing, stderr, and raw inspection path. `kraken_read_parser.kraken_summary`
+records pair/fragment report accounting, reconciliation, report format, and
+non-biological top taxa. The associated top-taxa TSV columns are `sample_id`,
+`summary_type`, rank/taxid/name, direct/clade fragments, percent, and optional
+minimizer values/fraction. Null/empty minimizer values mean unavailable, not
+zero.

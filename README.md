@@ -136,3 +136,37 @@ Schema details for validation JSON, run metadata, and reserved future artifact f
 ## Data and generated-output safety
 
 Do not commit real human miniCRAMs or FASTQs, BAM/CRAM files, Kraken2 databases, large Kraken2 outputs, Apptainer SIF images, Nextflow work directories, or institution-specific runtime paths. The committed FASTQ files are intentionally small development examples only.
+
+## WGS-safe Kraken2 evidence capture (0.2.0)
+
+`inspect-db --db DB --outdir OUT` validates that `hash.k2d`, `opts.k2d`, and
+`taxo.k2d` are readable non-empty regular files, preserves `kraken2-inspect`
+output, and writes database provenance. `taxonomy/nodes.dmp` and `names.dmp`
+(or root-level fallbacks) are optional: their absence is warned and does not
+prevent raw classification. Database identity uses path, size, and nanosecond
+mtime rather than hashing the potentially hundreds-of-GB `hash.k2d` file.
+
+`run-kraken` retains the raw paired TSV as the reusable evidence artifact.
+Use `--report-minimizer-data` to preserve the eight-column enriched report as
+`*.report.minimizer.tsv`; a six-column compatibility `*.report.tsv` is derived
+without altering row order or indentation. Each validated run also writes a
+non-biological pair/fragment summary JSON and top-taxa TSV. `--expected-pairs`
+strictly reconciles the report total; failures remain recorded as
+`post_run_validation_failed`. Run metadata transitions from `running` to
+`kraken_failed`, `post_run_validation_failed`, or `completed` atomically.
+No confidence threshold, biological labels, or FASTQ filtering is applied.
+
+### External 100,000-pair validation (HPC)
+
+After checking out the exact commit, confirm `kraken-read-parser --help`, then:
+```bash
+kraken-read-parser inspect-db --db /external/shared/kraken_db --outdir /external/results/db_inspection
+kraken-read-parser run-kraken --r1 /external/subset_R1.fastq.gz --r2 /external/subset_R2.fastq.gz \
+  --db /external/shared/kraken_db --sample-id subset100k --outdir /external/results/subset100k \
+  --threads 16 --memory-mapping --report-minimizer-data --expected-pairs 100000
+```
+Review Slurm status and `run_status=completed`; verify nonempty raw TSV,
+eight-column enriched and six-column compatibility reports, summary total of
+100000, populated top-taxa output, and provenance. Compare corresponding
+report rows before scheduling full WGS jobs. These paths are examples only;
+no real data or full WGS run is included here.
